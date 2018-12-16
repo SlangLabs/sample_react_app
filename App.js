@@ -1,6 +1,6 @@
 /**
  * Sample React Native App to demonstrate Slang integration
- * https://github.com/facebook/react-native
+ * https://github.com/SlangLabs/sample_react_app
  *
  * @format
  * @flow
@@ -34,6 +34,8 @@ export default class App extends Component<Props> {
       () => {
         console.log("initialized slang ");
         console.log("registering actions ");
+        // Slang has been successfully initialized. Register envets to handle the 
+        // detected intents
         this.registerHandlers();
       },
       (reason) => {
@@ -43,6 +45,7 @@ export default class App extends Component<Props> {
   }
 
   registerHandlers() {
+    // Register handler for the "romaing" intent
     slangEmitter.addListener('roaming', (e: Event) => {
       console.log(e);
       continueSession = true;
@@ -50,17 +53,22 @@ export default class App extends Component<Props> {
       // handle event.
       switch (e.eventType) {
         case "unresolvedEntity":
+          // This is to handle a missing entity in the original utterance of the user
           this.setState({unresolvedEntity: e.unresolvedEntity.name});
+          // If the user is looking for a domestic roaming, no need to ask for country. Implicitly set it to India
           if (e.unresolvedEntity.name === "country" && e.entities["region"].value === "domestic") {
             console.log("setting entity country");
+            // This is used to force a value for an entity
             SlangBuddy.setEntity("country", "india");
           }
           break;
 
         case "action":
+          // The intent is fully resolved at this point. Take some action
           break;
       }
 
+      // The Slang session is suspended by default. Explicitly either mark it successful or failed
       if (continueSession) {
         console.log("continuing session...");
         SlangBuddy.continueSession();
